@@ -13,7 +13,7 @@ rsync -a --exclude index.txt $C/projects/analizodatos-next/out/ "$S"/
 cp $C/artifacts/index-scroll-analizodatos/home-scroll/index.html "$S/index.html"
 mkdir -p "$S/assets"; rsync -a $C/projects/analizodatos-landing/assets/ "$S/assets/"; cp "$S/assets/manuel-photo.jpg" "$S/manu.jpg"
 # Gemelo web: widget en la home + página /agendar (la API vive en gemelo-api.analizodatos.com)
-mkdir -p "$S/assets/gemelo" "$S/agendar" "$S/privacidad"; cp $C/projects/analizodatos-landing/gemelo/privacidad/index.html "$S/privacidad/index.html"; cp $C/projects/analizodatos-landing/gemelo/{widget.js,config.js} "$S/assets/gemelo/"; cp $C/projects/analizodatos-landing/gemelo/agendar/index.html "$S/agendar/index.html"
+mkdir -p "$S/assets/gemelo" "$S/agendar" "$S/privacidad" "$S/yo"; cp $C/projects/analizodatos-landing/gemelo/yo/index.html "$S/yo/index.html"; cp $C/projects/analizodatos-landing/gemelo/privacidad/index.html "$S/privacidad/index.html"; cp $C/projects/analizodatos-landing/gemelo/{widget.js,config.js} "$S/assets/gemelo/"; cp $C/projects/analizodatos-landing/gemelo/agendar/index.html "$S/agendar/index.html"
 python3 - "$S/index.html" <<'PY'
 import sys; p=sys.argv[1]; s=open(p).read(); tag='<script src="/assets/gemelo/config.js"></script><script src="/assets/gemelo/widget.js" defer></script>'
 if "gemelo/widget.js" not in s: s=s.replace("</body>", tag+"</body>",1); open(p,"w").write(s)
@@ -83,7 +83,7 @@ printf '/taller-portafolio-datos/*\n  X-Robots-Tag: noindex, nofollow\n  Cache-C
 echo "armado en $S ($(du -sh "$S" | cut -f1), $(find "$S" -type f | wc -l) archivos)"
 [ "${1:-}" = "--solo-armar" ] && exit 0
 export CLOUDFLARE_ACCOUNT_ID=f34c339046f4d904e327032ba505c82e CLOUDFLARE_API_TOKEN=$(cat ~/.config/cloudflare/pages_deploy_token)  # token con permiso minimo: Cloudflare Pages Edit (20-oct-2026); ya no usa la clave global
-# Medición propia (sin cookies): t.js en todas las páginas HTML + Función /t/e (functions/ se despliega junto al sitio)
+# Medición propia (cookies propias _ad_vid/_ad_ses/_ad_own; /yo marca los navegadores de Manu): t.js en todas las páginas HTML + Función /t/e (functions/ se despliega junto al sitio)
 cp $C/projects/analizodatos-landing/gemelo/t.js "$S/assets/gemelo/t.js"
 python3 - "$S" <<'PY'
 import sys,pathlib

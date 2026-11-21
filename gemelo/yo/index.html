@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Marcar este navegador</title>
+<style>
+  :root { --bg:#f4f4fb; --card:#fff; --ink:#15152b; --muted:#4a4a68; --line:#d9d9ea; --accent:#5b21d6; --ok:#0a766a; --okbg:#e6f7f4; --warn:#8a4b00; --warnbg:#fff3df; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#0f0f1d; --card:#181830; --ink:#f0f0fb; --muted:#b4b4cf; --line:#2c2c4a; --accent:#a98bff; --ok:#5fe0cf; --okbg:#10302d; --warn:#ffc474; --warnbg:#33260f; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  main { max-width:560px; margin:0 auto; padding:32px 16px 48px; }
+  a.back { color:var(--muted); text-decoration:none; font-size:14px; display:inline-block; min-height:44px; line-height:44px; }
+  h1 { font-size:28px; line-height:1.2; margin:8px 0 8px; }
+  p { color:var(--muted); margin:0 0 16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px; margin-top:20px; }
+  .estado { border-radius:10px; padding:12px 14px; font-weight:600; margin-bottom:16px; }
+  .estado.si { background:var(--okbg); color:var(--ok); }
+  .estado.no { background:var(--warnbg); color:var(--warn); }
+  button { font:inherit; font-weight:600; min-height:44px; padding:0 20px; border-radius:10px; border:1px solid var(--accent); background:var(--accent); color:#fff; cursor:pointer; }
+  button.sec { background:transparent; color:var(--accent); }
+  @media (prefers-color-scheme: dark) { button { color:#15152b; } button.sec { color:var(--accent); } }
+  button:focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
+  .fila { display:flex; gap:12px; flex-wrap:wrap; }
+  small { display:block; color:var(--muted); font-size:13px; margin-top:16px; }
+  code { font-size:13px; background:var(--bg); padding:2px 6px; border-radius:6px; word-break:break-all; }
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="/">← analizodatos.com</a>
+  <h1>Marcar este navegador como mío</h1>
+  <p>Las visitas hechas desde un navegador marcado no cuentan en las estadísticas del sitio (siguen guardadas, pero el panel las deja fuera por defecto). Hazlo una vez en cada navegador o dispositivo que uses.</p>
+
+  <section class="card" aria-live="polite">
+    <div id="estado" class="estado no">Comprobando…</div>
+    <div class="fila">
+      <button id="activar" type="button">Marcar este navegador</button>
+      <button id="quitar" class="sec" type="button">Quitar la marca</button>
+    </div>
+    <small>Usa la cookie propia <code>_ad_own</code> (400 días, solo en analizodatos.com y sus subdominios). Si borras las cookies del navegador, hay que volver a marcarlo. Si tu navegador envía «No rastrear» no se mide nada, así que tampoco hace falta.</small>
+  </section>
+</main>
+<script>
+(function () {
+  var DOM = /(^|\.)analizodatos\.com$/.test(location.hostname) ? ';domain=.analizodatos.com' : '';
+  var SEC = location.protocol === 'https:' ? ';Secure' : '';
+  function tiene() { return /(?:^|; )_ad_own=1(?:;|$)/.test(document.cookie); }
+  function poner(v) { document.cookie = '_ad_own=' + (v ? '1' : '') + ';path=/;SameSite=Lax' + SEC + DOM + ';max-age=' + (v ? 400 * 86400 : 0); }
+  var est = document.getElementById('estado');
+  function pintar() {
+    var si = tiene();
+    est.className = 'estado ' + (si ? 'si' : 'no');
+    est.textContent = si ? 'Este navegador está marcado: tus visitas no se cuentan.' : 'Este navegador NO está marcado: tus visitas se cuentan como las de cualquiera.';
+    document.getElementById('activar').disabled = si; document.getElementById('quitar').disabled = !si;
+  }
+  document.getElementById('activar').onclick = function () { poner(true); pintar(); };
+  document.getElementById('quitar').onclick = function () { poner(false); pintar(); };
+  pintar();
+})();
+</script>
+</body>
+</html>

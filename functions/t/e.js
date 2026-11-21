@@ -2,7 +2,7 @@
 // Recibe el evento del script t.js, le agrega lo que SOLO el borde conoce (IP real, país, ciudad, ASN) y lo reenvía
 // a la API de gemelo-web firmado con una clave compartida. Responde 204 siempre: la medición nunca rompe la página.
 // Variables (Pages → Settings → Environment variables): TRACKER_KEY (secreta), TRACKER_URL (opcional).
-const CAMPOS = ['kind', 'pv', 'sid', 'host', 'path', 'ref', 'url', 'text', 'active_ms', 'scroll', 'lang'];
+const CAMPOS = ['kind', 'pv', 'sid', 'vid', 'own', 'host', 'path', 'ref', 'url', 'text', 'active_ms', 'scroll', 'lang'];
 
 export async function onRequestPost({ request, env, waitUntil }) {
   const fin = new Response(null, { status: 204, headers: { 'Cache-Control': 'no-store' } });
