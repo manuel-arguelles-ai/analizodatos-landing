@@ -1,0 +1,103 @@
+<script id="sc-embed-js">
+(function(){
+  'use strict';
+  var chico  = matchMedia('(max-width:860px)');
+  var quieto = matchMedia('(prefers-reduced-motion:reduce)');
+  function suelto(){ return chico.matches || quieto.matches; }
+
+  var ifr=null, track=null, listo=false, alcance=0, ultimo=-1, pedido=false;
+
+  function medir(){
+    try{
+      var d = ifr && ifr.contentDocument;
+      if(!d) return false;
+      alcance = d.documentElement.scrollHeight - ifr.contentWindow.innerHeight;
+      /* Sin el bloque de cierre, el ultimo tramo del recorrido es el fundido que
+         existia para dar paso a «Hablemos.»: el fotograma ya se apago y queda el
+         texto sobre negro. Se topa el recorrido donde termina la ultima capa, no
+         donde termina el documento. */
+      listo = alcance > 0;
+    }catch(e){ listo=false; }
+    return listo;
+  }
+  function pintar(){
+    pedido=false;
+    if(!track || suelto() || (!listo && !medir())) return;
+    var r = track.getBoundingClientRect(), total = r.height - innerHeight;
+    var p = total>0 ? Math.min(1, Math.max(0, -r.top/total)) : 0;
+    var y = Math.round(p*alcance);
+    if(y!==ultimo){
+      ultimo=y;
+      ifr.contentWindow.scrollTo(0,y);
+      /* El recorrido baja sus clips POR PROXIMIDAD, escuchando su propio evento
+         'scroll'. Empujado desde afuera ese evento no le llega: se quedaba con
+         2 de 9 clips y la pieza se veia con las fotos fijas, sin video —el final
+         parecia apagado porque mostraba la foto oscura de la 09 en vez del
+         transito a la orbita. Se le avisa a mano. */
+      try{ ifr.contentWindow.dispatchEvent(new Event('scroll')); }catch(e){}
+    }
+  }
+  function alScroll(){ if(!pedido){ pedido=true; requestAnimationFrame(pintar); } }
+
+  function montar(){
+    var orig = document.getElementById('metodo');
+    if(!orig || !orig.parentNode) return;
+    var sec = document.createElement('section');
+    sec.className = 'block block-metodo sc-sec';
+    sec.id = 'metodo-recorrido';
+    sec.innerHTML =
+      '<div class="sc-track" id="sc-track"><div class="sc-sticky">'+
+      '<iframe id="sc-frame" src="/metodo-sc-embed/" title="Las nueve capas de un agente en produccion, como recorrido" scrolling="no"></iframe>'+
+      '</div></div>';
+    orig.parentNode.insertBefore(sec, orig.nextSibling);
+    track = sec.querySelector('#sc-track');
+    ifr   = sec.querySelector('#sc-frame');
+    if(suelto()) ifr.setAttribute('scrolling','yes');
+    ifr.addEventListener('load', function(){
+      setTimeout(medir,600);
+      setTimeout(function(){ medir(); alScroll(); },2500);
+    });
+    listo=false; ultimo=-1;
+    alScroll();
+  }
+
+  /* React borra el nodo al hidratar (medido: se monta, y desaparece unos cientos
+     de ms despues). Se repone mientras haga falta, con tope; pasada la
+     hidratacion sobrevive y esto se queda quieto. */
+  var intentos=0;
+  function asegurar(){
+    if(document.getElementById('metodo-recorrido')) return;
+    if(++intentos > 60) return;
+    montar();
+  }
+  function arrancar(){
+    asegurar();
+    var cont = (document.getElementById('metodo')||{}).parentNode || document.body;
+    if(window.MutationObserver){
+      var obs = new MutationObserver(function(){ asegurar(); });
+      obs.observe(cont, {childList:true});
+      setTimeout(function(){ obs.disconnect(); asegurar(); }, 15000);
+    }
+    [200,500,900,1400,2000,3000,4500,6000,9000,12000].forEach(function(ms){
+      setTimeout(asegurar, ms);
+    });
+  }
+  if(document.readyState==='loading') addEventListener('DOMContentLoaded',arrancar);
+  else arrancar();
+
+  /* El nodo original queda oculto, asi que el «Metodo» del menu apuntaria a algo
+     invisible: se redirige al recorrido. Por delegacion, porque el menu tambien
+     lo pinta React. */
+  addEventListener('click', function(e){
+    var a = e.target && e.target.closest && e.target.closest('a[href$="#metodo"]');
+    if(!a) return;
+    var d = document.getElementById('metodo-recorrido');
+    if(!d) return;
+    e.preventDefault();
+    scrollTo({top: d.getBoundingClientRect().top + pageYOffset, behavior:'smooth'});
+  }, true);
+
+  addEventListener('scroll', alScroll, {passive:true});
+  addEventListener('resize', function(){ medir(); alScroll(); }, {passive:true});
+})();
+</script>

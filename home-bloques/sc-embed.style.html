@@ -1,0 +1,26 @@
+<style id="sc-embed">
+/* La lista original se oculta; el recorrido se monta al lado. */
+#metodo{display:none !important}
+/* A sangre: .block trae padding y ancho de lectura, y el recorrido es cine —
+   con ellos quedaban dos franjas negras a los lados. */
+.sc-sec{padding:0 !important;margin:0 !important;max-width:none !important;width:100%}
+.sc-track{position:relative;height:calc(100vh + 11 * 100vh)}
+.sc-sticky{position:sticky;top:0;height:100vh;overflow:hidden;background:#02030a}
+#sc-frame{display:block;width:100%;height:100vh;border:0}
+/* En pantallas chicas no se secuestra el scroll: el recorrido se navega con el
+   dedo dentro de su marco, como cualquier otro bloque. */
+/* Franjas de transición: el recorrido es una pieza crema (#f4f4f1) y la página puede ser oscura;
+   dos degradados FUERA del área fija (no tapan el título) suavizan la entrada y la salida. */
+.sc-sec::before,.sc-sec::after{content:'';display:block;height:18vh;flex:none}
+.sc-sec::before{background:linear-gradient(to bottom,transparent,#f4f4f1)}
+.sc-sec::after{background:linear-gradient(to top,transparent,#f4f4f1)}
+@media (max-width:860px){
+  .sc-track{height:auto}
+  .sc-sticky{position:static;height:auto}
+  #sc-frame{height:86svh}
+  .sc-sec::before,.sc-sec::after{height:8vh}
+}
+@media (prefers-reduced-motion:reduce){
+  .sc-track{height:auto} .sc-sticky{position:static}
+}
+</style>
