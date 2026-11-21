@@ -7,7 +7,7 @@
 set -euo pipefail
 C=~/clawd; S=/tmp/ad-site-$(date +%Y%m%d-%H%M%S)
 # cada build pesa ~117 MB: conserva solo el último (llenó el disco el 14-oct-2026)
-ls -dt /tmp/ad-site-* 2>/dev/null | tail -n +2 | while read -r d; do rm -rf "$d"; done
+{ ls -dt /tmp/ad-site-* 2>/dev/null || true; } | tail -n +2 | while read -r d; do rm -rf "$d"; done
 mkdir -p "$S"
 rsync -a --exclude index.txt $C/projects/analizodatos-next/out/ "$S"/
 cp $C/artifacts/index-scroll-analizodatos/home-scroll/index.html "$S/index.html"
@@ -35,12 +35,54 @@ cp $C/projects/consigue-empleo-remoto/index.html "$S/consigue-empleo-remoto/"; c
 cp $C/projects/infografias-linkedin/infografias/tier-list-ia/index.html "$S/tier-list-ai-ecosystem/"
 rsync -a $C/projects/infografias-linkedin/fonts/ "$S/fonts/"; cp $C/projects/infografias-linkedin/brand/manu-linkedin.jpg "$S/brand/"
 mkdir -p "$S/onboarding-claude"; rsync -a --exclude api --exclude data --exclude '*.php' --exclude groq.key $C/../Projects/claudecode-onboarding/out/ "$S/onboarding-claude/"
+# calculadora de sueldos tech (roles) — fuente única en ~/calculadora-sueldos
+mkdir -p "$S/calculadora-sueldos-tech"; rsync -a --exclude '*.md' ~/calculadora-sueldos/ "$S/calculadora-sueldos-tech/"
+# DE Challenges Hub (catálogo estático; sin api/ ni groq.key: el foquito cae al fallback de links)
+mkdir -p "$S/data-challenges-hub/catalog"; D=$C/proyectos/databricks-challenges-hub/deploy; cp $D/index.html $D/glossary.json "$S/data-challenges-hub/"; cp $D/catalog/items.json "$S/data-challenges-hub/catalog/"
+# Portafolio de soluciones agénticas (repos públicos, búsqueda híbrida en el navegador, ES/EN; fuente: projects/portafolio-agentico: build/proyectos.py + build/embed.mjs + build/imgs.sh)
+mkdir -p "$S/portafolio"; rsync -a --exclude "*.png" $C/projects/portafolio-agentico/web/ "$S/portafolio/"
+# Ingeniería de datos multicloud (web estática: diseñador + catálogo; publicada con index el 2026-11-10)
+mkdir -p "$S/ingenieria-de-datos-multicloud"; cp $C/projects/ingenieria-datos-multicloud/web/index.html "$S/ingenieria-de-datos-multicloud/index.html"
+mkdir -p "$S/ingenieria-de-datos-multicloud/assets"; cp $C/projects/ingenieria-datos-multicloud/web/assets/*.jpg "$S/ingenieria-de-datos-multicloud/assets/"
+mkdir -p "$S/ingenieria-de-datos-multicloud-equivalencias"; cp $C/projects/ingenieria-datos-multicloud/web/equivalencias.html "$S/ingenieria-de-datos-multicloud-equivalencias/index.html"
+# Generador de URL de búsquedas de empleo en LinkedIn (fuente: projects/linkedin-filtros/web)
+mkdir -p "$S/linkedin-filtros"; cp $C/projects/linkedin-filtros/web/index.html "$S/linkedin-filtros/index.html"
+# Quitar fondo de imágenes (client-side, @imgly/background-removal; fuente: projects/remove-background-web; noindex)
+mkdir -p "$S/remove-background"; cp $C/projects/remove-background-web/index.html "$S/remove-background/index.html"
+mkdir -p "$S/servicios/vps"; cp $C/projects/analizodatos-landing/servicios/vps/index.html "$S/servicios/vps/index.html"
 mkdir -p "$S/agente-de-ventas"; cp $C/proyectos/vende-ia/docs/stack.html "$S/agente-de-ventas/index.html"; cp $C/proyectos/vende-ia/docs/manu-presnap-orange.mp4 "$S/agente-de-ventas/"
 printf '/vende-ia https://vende-ai.analizodatos.com/vende-ia 302\n/vende-ia/ https://vende-ai.analizodatos.com/vende-ia 302\n/index-scroll / 301\n/metodo-sc-fix /metodo-sc 301\n' > "$S/_redirects"
-printf '/*/d/*\n  Cache-Control: public, max-age=31536000, immutable\n/scrolling-hf/*\n  X-Robots-Tag: noindex\n/scrolling-an/*\n  X-Robots-Tag: noindex\n/scrolling-flow/*\n  X-Robots-Tag: noindex\n/scrolling-flow-mov/*\n  X-Robots-Tag: noindex\n' > "$S/_headers"
+printf '/*/d/*\n  Cache-Control: public, max-age=31536000, immutable\n/scrolling-hf/*\n  X-Robots-Tag: noindex\n/scrolling-an/*\n  X-Robots-Tag: noindex\n/scrolling-flow/*\n  X-Robots-Tag: noindex\n/scrolling-flow-mov/*\n  X-Robots-Tag: noindex\n/servicios/*\n  X-Robots-Tag: noindex\n' > "$S/_headers"
+printf '/remove-background/*\n  X-Robots-Tag: noindex\n' >> "$S/_headers"
+# /chack: informe SLA Aranda (Fabric/Databricks) con clave (Pages Function) + agente OpenClaw VPS; fuente en projects/aranda-sla-fabric-databricks/chack
+mkdir -p "$S/chack"; rsync -a $C/projects/aranda-sla-fabric-databricks/chack/public/ "$S/chack/"
+mkdir -p $C/projects/analizodatos-landing/functions/chack; rsync -a --delete $C/projects/aranda-sla-fabric-databricks/chack/functions/chack/ $C/projects/analizodatos-landing/functions/chack/
+mkdir -p $C/projects/analizodatos-landing/functions/sla-demo; rsync -a --delete $C/projects/aranda-sla-fabric-databricks/chack/functions/sla-demo/ $C/projects/analizodatos-landing/functions/sla-demo/
+printf '/chack/*\n  X-Robots-Tag: noindex, nofollow\n  Cache-Control: private, no-store\n' >> "$S/_headers"
+# /turgalium: material del curso Caja Trujillo (4 diagramas + FAQ + asistente OpenClaw VPS) con clave (Pages Function); fuente en projects/turgalium-web
+(cd $C/projects/turgalium-web && python3 construir.py >/dev/null) || echo "AVISO: turgalium-web/construir.py fallo (depende de un scratchpad que ya no existe); se usa public/ tal cual" >&2
+mkdir -p "$S/turgalium"; rsync -a $C/projects/turgalium-web/public/ "$S/turgalium/"
+mkdir -p $C/projects/analizodatos-landing/functions/turgalium; rsync -a --delete $C/projects/turgalium-web/functions/turgalium/ $C/projects/analizodatos-landing/functions/turgalium/
+printf '/turgalium/*\n  X-Robots-Tag: noindex, nofollow\n  Cache-Control: private, no-store\n' >> "$S/_headers"
+# /presupuesto-familiar: gastos del hogar (Manuel y Magenta). Puerta con clave + proxy al contenedor del VPS (cuentas-origen); fuente en projects/cuentas-de-la-casa
+mkdir -p $C/projects/analizodatos-landing/functions/presupuesto-familiar; rsync -a --delete $C/projects/cuentas-de-la-casa/pages/functions/presupuesto-familiar/ $C/projects/analizodatos-landing/functions/presupuesto-familiar/
+printf '/presupuesto-familiar/*\n  X-Robots-Tag: noindex, nofollow\n  Cache-Control: private, no-store\n' >> "$S/_headers"
+# Taller Portafolio de datos (19-nov-2026): láminas con clave (Pages Function) + web de registro y preguntas en vivo (D1, binding TALLER_DB); fuente en projects/taller-portafolio-datos
+T=$C/projects/taller-portafolio-datos
+mkdir -p "$S/taller-portafolio-datos" "$S/taller-portafolio-datos-e2e"
+rsync -a $T/deck/index.html $T/deck/deck.css $T/deck/deck.js $T/deck/assets "$S/taller-portafolio-datos/"
+rsync -a $T/web/e2e/ "$S/taller-portafolio-datos-e2e/"
+mkdir -p "$S/taller-portafolio-datos/guion"; cp $T/web/guion/index.html "$S/taller-portafolio-datos/guion/index.html"  # guion del presentador, tras la misma clave
+python3 - "$S/taller-portafolio-datos/index.html" <<'PY'
+import sys; p=sys.argv[1]; s=open(p).read(); a='<button id="bMarcas"'
+if "bGuion" not in s and a in s: open(p,"w").write(s.replace(a, '<button id="bGuion" type="button" onclick="window.open(\'guion/\',\'_blank\')">Guion</button>\n  '+a,1))
+PY
+for d in taller-portafolio-datos taller-portafolio-datos-e2e; do mkdir -p $C/projects/analizodatos-landing/functions/$d; rsync -a --delete $T/web/functions/$d/ $C/projects/analizodatos-landing/functions/$d/; done
+cp $T/web/functions/_lib/taller_acceso.js $C/projects/analizodatos-landing/functions/_lib/
+printf '/taller-portafolio-datos/*\n  X-Robots-Tag: noindex, nofollow\n  Cache-Control: private, no-store\n/taller-portafolio-datos-e2e/*\n  X-Robots-Tag: noindex, nofollow\n' >> "$S/_headers"
 echo "armado en $S ($(du -sh "$S" | cut -f1), $(find "$S" -type f | wc -l) archivos)"
 [ "${1:-}" = "--solo-armar" ] && exit 0
-export CLOUDFLARE_ACCOUNT_ID=f34c339046f4d904e327032ba505c82e CLOUDFLARE_EMAIL=$(cat ~/.config/cloudflare/email) CLOUDFLARE_API_KEY=$(cat ~/.config/cloudflare/api_key)
+export CLOUDFLARE_ACCOUNT_ID=f34c339046f4d904e327032ba505c82e CLOUDFLARE_API_TOKEN=$(cat ~/.config/cloudflare/pages_deploy_token)  # token con permiso minimo: Cloudflare Pages Edit (20-oct-2026); ya no usa la clave global
 # Medición propia (sin cookies): t.js en todas las páginas HTML + Función /t/e (functions/ se despliega junto al sitio)
 cp $C/projects/analizodatos-landing/gemelo/t.js "$S/assets/gemelo/t.js"
 python3 - "$S" <<'PY'
