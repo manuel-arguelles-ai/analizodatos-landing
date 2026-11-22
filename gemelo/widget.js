@@ -8,11 +8,14 @@
   var es = (document.documentElement.lang || 'es').slice(0, 2) !== 'en';
   var T = es ? { open: 'Habla con Manubot', title: 'Manubot', sub: 'IA · responde sobre su trabajo y agenda reuniones', ph: 'Escribe tu pregunta…', send: 'Enviar', hi: 'Hola, soy Manubot, el agente de IA de Manuel. Puedo contarte sobre su trabajo en datos y agentes, o ayudarte a agendar una llamada de 30 minutos. ¿Qué te trae por aquí?', book: 'Sí, agendar', human: 'Verificando…', err: 'No pude conectar. Intenta de nuevo o escribe a manuel.arguelles.peru@gmail.com.', priv: 'Es una IA. Guardamos la conversación 90 días para mejorar el servicio.', close: 'Cerrar' }
     : { open: 'Talk to Manubot', title: "Manubot", sub: 'AI · answers about his work and books meetings', ph: 'Type your question…', send: 'Send', hi: "Hi, I'm Manubot, Manuel's AI agent. I can tell you about his data and agents work, or help you book a 30-minute call. What brings you here?", book: 'Yes, book', human: 'Verifying…', err: 'Could not connect. Try again or email manuel.arguelles.peru@gmail.com.', priv: 'This is an AI. Conversations are kept 90 days to improve the service.', close: 'Close' };
+  if (C.texts && C.texts[es ? 'es' : 'en']) { var TX = C.texts[es ? 'es' : 'en']; for (var tk0 in TX) if (tk0 !== 'chips') T[tk0] = TX[tk0]; }   // textos propios de una página (opcional)
+  var CHIPS = (C.texts && C.texts[es ? 'es' : 'en'] && C.texts[es ? 'es' : 'en'].chips) || null;
   var css = '#gm-fab{position:fixed;right:28px;bottom:100px;z-index:99990;border:0;border-radius:999px;padding:13px 20px;font:600 14px Inter,system-ui,sans-serif;color:#fff;background:linear-gradient(135deg,#7b6cff,#ff5e8a);box-shadow:0 8px 30px rgba(91,75,255,.45);cursor:pointer}#gm-fab:focus-visible,#gm-in:focus-visible,#gm-send:focus-visible,.gm-book:focus-visible{outline:2px solid #37e0c8;outline-offset:2px}'
     + '#gm-box{position:fixed;right:18px;bottom:18px;z-index:99991;width:min(380px,calc(100vw - 24px));height:min(560px,calc(100vh - 36px));display:none;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(10,12,28,.96);color:#eaf0ff;border:1px solid rgba(255,255,255,.12);box-shadow:0 20px 60px rgba(0,0,0,.55);font:14px/1.5 Inter,system-ui,sans-serif;backdrop-filter:blur(14px)}#gm-box.on{display:flex}'
     + '#gm-hd{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.1)}#gm-hd b{font:600 15px "Space Grotesk",Inter,sans-serif}#gm-hd small{display:block;color:#9aa6c6;font-size:11.5px}#gm-x{margin-left:auto;background:none;border:0;color:#9aa6c6;font-size:22px;cursor:pointer;line-height:1}'
     + '#gm-log{flex:1;overflow:auto;padding:14px 14px 4px;display:flex;flex-direction:column;gap:10px}.gm-m{max-width:88%;padding:9px 12px;border-radius:14px;white-space:pre-wrap;word-wrap:break-word}.gm-b{align-self:flex-start;background:rgba(255,255,255,.07)}.gm-u{align-self:flex-end;background:#5b4bff;color:#fff}.gm-book{align-self:flex-start;display:inline-block;margin:2px 0 4px;padding:9px 16px;border-radius:999px;background:linear-gradient(135deg,#37e0c8,#7b6cff);color:#02030a;font-weight:700;text-decoration:none}'
     + '#gm-f{display:flex;gap:8px;padding:10px 12px;border-top:1px solid rgba(255,255,255,.1)}#gm-in{flex:1;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:#eaf0ff;border-radius:10px;padding:10px 12px;font:inherit}#gm-send{border:0;border-radius:10px;padding:0 14px;background:#7b6cff;color:#fff;font:600 13px inherit;cursor:pointer}#gm-send[disabled]{opacity:.5}#gm-pv{padding:0 14px 10px;color:#7d88a8;font-size:11px}#gm-ts{display:flex;justify-content:center;padding:0 12px}#gm-ts:empty{display:none}'
+    + '.gm-chips{display:flex;flex-wrap:wrap;gap:6px;align-self:flex-start}.gm-chip{border:1px solid rgba(133,119,255,.55);background:rgba(133,119,255,.12);color:inherit;border-radius:999px;padding:6px 11px;font:500 12.5px Inter,system-ui,sans-serif;cursor:pointer;text-align:left}.gm-chip:hover{background:rgba(133,119,255,.25)}'
     + '@media (prefers-color-scheme:light){html:not([data-theme="dark"]) #gm-box{background:rgba(255,255,255,.97);color:#161a2b;border-color:rgba(20,24,50,.12)}html:not([data-theme="dark"]) .gm-b{background:rgba(20,24,50,.06)}html:not([data-theme="dark"]) #gm-in{background:#fff;color:#161a2b;border-color:rgba(20,24,50,.18)}}';
   var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
   var fab = document.createElement('button'); fab.id = 'gm-fab'; fab.type = 'button'; fab.textContent = T.open; fab.setAttribute('aria-label', T.open);
@@ -36,7 +39,14 @@
       });
     });
   }
-  function open() { box.classList.add('on'); fab.style.display = 'none'; if (!started) { started = true; add('gm-b', T.hi); } input.focus(); }
+  function addChips() {
+    if (!CHIPS || !CHIPS.length) return;
+    var w = document.createElement('div'); w.className = 'gm-chips';
+    CHIPS.forEach(function (q) { var b = document.createElement('button'); b.type = 'button'; b.className = 'gm-chip'; b.textContent = q;
+      b.addEventListener('click', function () { if (busy) return; w.remove(); input.value = q; form.dispatchEvent(new Event('submit', { cancelable: true })); }); w.appendChild(b); });
+    log.appendChild(w); log.scrollTop = log.scrollHeight;
+  }
+  function open() { box.classList.add('on'); fab.style.display = 'none'; if (!started) { started = true; add('gm-b', T.hi); addChips(); } input.focus(); }
   function close() { box.classList.remove('on'); fab.style.display = ''; }
   fab.addEventListener('click', open); box.querySelector('#gm-x').addEventListener('click', close);
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && box.classList.contains('on')) close(); });
@@ -47,7 +57,10 @@
     add('gm-u', text); convo.push({ u: text });
     ensureSession().then(function (tk) {
       var bubble = add('gm-b', '…');
-      return fetch(C.api + '/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: tk, message: text }) }).then(function (r) {
+      var body = { token: tk, message: text };
+      if (C.context) body.context = C.context;
+      var ctxP = (C.context && typeof C.getContext === 'function') ? Promise.resolve().then(function () { return C.getContext(text); }).catch(function () { return null; }) : Promise.resolve(null);
+      return ctxP.then(function (cx) { if (cx) body.hub = cx; return fetch(C.api + '/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(function (r) {
         if (r.status === 401) { token = null; throw new Error('sesión'); }
         if (r.status === 429) { bubble.textContent = es ? 'Vas muy rápido; espera unos minutos.' : 'Slow down a bit; try again in a few minutes.'; return; }
         var reader = r.body.getReader(), dec = new TextDecoder(), buf = '', first = true;
@@ -60,6 +73,7 @@
           return pump(); }); }
         return pump();
       });
+      });   // cierra ctxP.then
     }).catch(function () { add('gm-b', T.err); }).then(function () { busy = false; send.disabled = false; input.focus(); });
   });
 }
