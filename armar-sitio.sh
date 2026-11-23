@@ -39,6 +39,8 @@ mkdir -p "$S/onboarding-claude"; rsync -a --exclude api --exclude data --exclude
 mkdir -p "$S/calculadora-sueldos-tech"; rsync -a --exclude '*.md' ~/calculadora-sueldos/ "$S/calculadora-sueldos-tech/"
 # Data Challenges Hub (catálogo estático con identidad de marca; unificado el 22-nov-2026: /data-challenges-hub sirve deploy-new/, sin api/ ni groq.key)
 mkdir -p "$S/data-challenges-hub/catalog"; DN=$C/proyectos/data-challenges-hub/deploy-new; cp $DN/index.html $DN/glossary.json "$S/data-challenges-hub/"; cp $DN/catalog/items.json $DN/catalog/search-index.json "$S/data-challenges-hub/catalog/"
+# Datasets con datos sucios (página hermana, misma plantilla en modo datasets; enlazadas por banda de cruce)
+mkdir -p "$S/datasets-challenges-hub/catalog"; DD=$C/proyectos/data-challenges-hub/deploy-datasets; cp $DD/index.html $DD/glossary.json "$S/datasets-challenges-hub/"; cp $DD/catalog/items.json $DD/catalog/search-index.json "$S/datasets-challenges-hub/catalog/"
 # la ruta de revisión anterior redirige a la canónica
 mkdir -p "$S/data-challenges-hub-new"; cat > "$S/data-challenges-hub-new/index.html" <<'HTMLR'
 <!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="robots" content="noindex"><link rel="canonical" href="https://analizodatos.com/data-challenges-hub/"><meta http-equiv="refresh" content="0;url=/data-challenges-hub/"><title>Data Challenges Hub</title></head><body><a href="/data-challenges-hub/">Data Challenges Hub</a><script>location.replace('/data-challenges-hub/'+location.search+location.hash)</script></body></html>
